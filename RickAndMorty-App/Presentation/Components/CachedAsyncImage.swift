@@ -8,6 +8,12 @@
 import SwiftUI
 import Kingfisher
 
+// MARK: - Retry Strategy
+private let kingfisherRetryStrategy = DelayRetryStrategy(
+    maxRetryCount: 3,
+    retryInterval: .seconds(4)
+)
+
 // MARK: - Character Thumbnail (Optimized for List)
 struct CharacterThumbnail: View {
     let imageURL: String
@@ -37,6 +43,7 @@ struct CharacterThumbnail: View {
             .scaleFactor(displayScale)
             .cacheMemoryOnly()
             .fade(duration: 0.2)
+            .retry(kingfisherRetryStrategy)
             .onFailure { error in
                 print("Error downloading image: \(error)")
             }
@@ -70,7 +77,9 @@ struct CharacterHeroImage: View {
             .scaleFactor(displayScale)
             .cacheOriginalImage()
             .fade(duration: 0.25)
-            .onFailure { _ in
+            .retry(kingfisherRetryStrategy)
+            .onFailure { error in
+                print("Error downloading image: \(error)")
                 Image(systemName: "person.fill")
                     .resizable()
                     .foregroundStyle(.secondary)
@@ -78,26 +87,5 @@ struct CharacterHeroImage: View {
             }
             .resizable()
             .aspectRatio(contentMode: .fill)
-    }
-}
-
-// MARK: - Kingfisher Cache Manager Extension
-extension KingfisherManager {
-    static func clearCache() {
-        KingfisherManager.shared.cache.clearMemoryCache()
-        KingfisherManager.shared.cache.clearDiskCache()
-    }
-
-    static func clearMemoryCache() {
-        KingfisherManager.shared.cache.clearMemoryCache()
-    }
-    
-    static func configureKingfisher() {
-        KingfisherManager.shared.downloader.downloadTimeout = 15
-        KingfisherManager.shared.downloader.sessionConfiguration = {
-            let config = URLSessionConfiguration.default
-            config.httpMaximumConnectionsPerHost = 2 // Máximo 2 descargas simultáneas por host
-            return config
-        }()
     }
 }

@@ -48,7 +48,8 @@ RickAndMorty-App/
 │       ├── CharacterRowView.swift
 │       ├── LoadingView.swift
 │       ├── ErrorView.swift
-│       └── EmptyStateView.swift
+│       ├── EmptyStateView.swift
+│       └── CachedAsyncImage.swift
 │
 ├── Domain/                # Capa de Dominio
 │   ├── Models/
@@ -360,6 +361,24 @@ La suite de tests incluye:
 - SDWebImage: Más antiguo, Kingfisher es más moderno
 - Nuke: Similar pero menos adoptado
 
+### Image Loading & Rate Limiting
+
+Las imágenes de los personajes se cargan con Kingfisher, y durante el desarrollo se detectaron errores de descarga con el siguiente código de respuesta:
+`HTTP 429 - Too Many Requests`
+
+Este error lo devuelve el servidor (Rick & Morty API, protegida por Cloudflare) cuando recibe demasiadas peticiones en un periodo corto de tiempo. Ocurre especialmente al hacer scroll rápido en la lista de personajes, ya que se lanzan múltiples descargas simultáneas.
+
+La propia respuesta del servidor incluía el header `retry-after: 4`, indicando que hay que esperar 4 segundos antes de reintentar.
+Solución aplicada
+
+Se tomaron dos medidas complementarias:
+1. Retry automático con espera
+Se configuró un `DelayRetryStrategy` en Kingfisher para que, ante un fallo de descarga, reintente automáticamente hasta 3 veces esperando 4 segundos entre cada intento, respetando así la indicación del servidor.
+2. Límite de conexiones simultáneas
+
+Se limitó a 2 el número máximo de descargas simultáneas hacia el mismo host `(httpMaximumConnectionsPerHost = 2)`, reduciendo la probabilidad de que el servidor vuelva a aplicar rate limiting.
+
+
 ### 6. Swift Testing en lugar de XCTest
 
 **Decisión:** Usar el nuevo framework Swift Testing
@@ -525,7 +544,7 @@ Si se necesitara soportar iOS 16 o inferior:
 
 ## 👨‍💻 Autor
 
-Desarrollado siguiendo las mejores prácticas de iOS para 2026, con especial atención a:
+Desarrollado por Dani Durà siguiendo las mejores prácticas de iOS para 2026, con especial atención a:
 - Clean Code
 - SOLID Principles
 - Design Patterns

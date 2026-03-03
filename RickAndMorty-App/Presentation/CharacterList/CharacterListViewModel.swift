@@ -202,6 +202,7 @@ final class CharacterListViewModel {
 
         } catch {
             // Don't show error for pagination failures, just stop loading
+            print("Error with paginaiton: \(error.localizedDescription)")
             uiState = .loaded
         }
 

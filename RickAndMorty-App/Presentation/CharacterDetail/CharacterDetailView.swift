@@ -2,7 +2,7 @@
 //  CharacterDetailView.swift
 //  RickAndMorty-App
 //
-//  Detail view for a single character with matchedGeometryEffect
+//  Detail view for a single character
 //
 
 import SwiftUI
@@ -15,7 +15,7 @@ struct CharacterDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Hero Image with Kingfisher and matchedGeometryEffect
+                    // Hero Image with Kingfisher
                     CharacterHeroImage(
                         imageURL: character.imageURL
                     )
